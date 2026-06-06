@@ -1,0 +1,8 @@
+parameters:
+    level: 7
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    paths:
+        - src
+        - helpers.php
+    tmpDir: tests/.phpstan.cache
