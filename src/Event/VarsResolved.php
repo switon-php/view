@@ -6,9 +6,11 @@ namespace Switon\Viewing\Event;
 
 use JsonSerializable;
 use ReflectionMethod;
+use Switon\Core\SenderAwareInterface;
 use Switon\Eventing\Attribute\EventLevel;
 use Switon\Eventing\Severity;
 use Switon\Viewing\ViewInterface;
+use Switon\Viewing\ViewRenderer;
 
 /**
  * Event emitted after view variables are resolved from action output.
@@ -20,7 +22,7 @@ use Switon\Viewing\ViewInterface;
  * @see \Switon\Viewing\Event\VarsResolving
  */
 #[EventLevel(Severity::DEBUG)]
-class VarsResolved implements JsonSerializable
+class VarsResolved implements JsonSerializable, SenderAwareInterface
 {
     /**
      * @param ViewInterface $view The view instance
@@ -28,11 +30,16 @@ class VarsResolved implements JsonSerializable
      * @param array<string, mixed> $vars Final template vars about to be rendered
      */
     public function __construct(
-        public ViewInterface    $view,
+        public ViewRenderer $sender,
+        public ViewInterface $view,
         public ReflectionMethod $method,
-        public array            $vars
+        public array $vars,
     ) {
+    }
 
+    public function getSender(): ViewRenderer
+    {
+        return $this->sender;
     }
 
     /**

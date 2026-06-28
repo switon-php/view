@@ -73,7 +73,7 @@ class ViewRenderer
     protected function resolveViewVars(ReflectionMethod $method, mixed $return): array
     {
         // Dispatch ViewVarsResolving event - allow pre-filling view variables
-        $varsEvent = new VarsResolving($this->view, $method);
+        $varsEvent = new VarsResolving($this, $this->view, $method);
         $this->eventDispatcher->dispatch($varsEvent);
         $vars = $varsEvent->vars;
 
@@ -88,7 +88,7 @@ class ViewRenderer
         }
 
         // Dispatch ViewVarsResolved event - allow modifying final variables
-        $varsEvent = new VarsResolved($this->view, $method, $vars);
+        $varsEvent = new VarsResolved($this, $this->view, $method, $vars);
         $this->eventDispatcher->dispatch($varsEvent);
 
         return $varsEvent->vars;

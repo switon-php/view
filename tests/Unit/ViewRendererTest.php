@@ -10,6 +10,7 @@ use ReflectionMethod;
 use Switon\Core\ArrayableInterface;
 use Switon\Http\Event\RequestRendering;
 use Switon\Http\RequestInterface;
+use Switon\Http\RequestHandlerInterface;
 use Switon\Http\ResponseInterface;
 use Switon\Testing\Container;
 use Switon\Viewing\Event\VarsResolving;
@@ -26,6 +27,7 @@ class ViewRendererTest extends TestCase
     protected ViewRenderer $viewRenderer;
     protected ViewInterface $view;
     protected EventDispatcherInterface $eventDispatcher;
+    protected RequestHandlerInterface $requestHandler;
     protected Container $container;
 
     protected function setUp(): void
@@ -37,10 +39,12 @@ class ViewRendererTest extends TestCase
         // Create mocks for dependencies
         $this->view = $this->createMock(ViewInterface::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->requestHandler = $this->createStub(RequestHandlerInterface::class);
 
         // Register mocks in container
         $this->container->set(ViewInterface::class, $this->view);
         $this->container->set(EventDispatcherInterface::class, $this->eventDispatcher);
+        $this->container->set(RequestHandlerInterface::class, $this->requestHandler);
 
         // Create ViewRenderer through container - autowiring will inject the mocks
         $this->viewRenderer = $this->container->make(ViewRenderer::class);
@@ -58,7 +62,7 @@ class ViewRendererTest extends TestCase
         $response->expects($this->once())->method('hasContent')->willReturn(true);
 
         // RequestRendering($method, $return, $request, $response, $prefix)
-        $event = new RequestRendering($method, null, $request, $response, '');
+        $event = new RequestRendering($this->requestHandler, $method, null, $request, $response, '');
 
         $this->eventDispatcher->expects($this->never())->method('dispatch');
         $this->view->expects($this->never())->method('setVars');
@@ -82,7 +86,7 @@ class ViewRendererTest extends TestCase
         $response->method('hasContent')->willReturn(false);
         $request->method('handler')->willReturn('Test::action');
 
-        $event = new RequestRendering($method, $returnValue, $request, $response, '/app');
+        $event = new RequestRendering($this->requestHandler, $method, $returnValue, $request, $response, '/app');
 
         $this->eventDispatcher->expects($this->exactly(2))
             ->method('dispatch')
@@ -122,7 +126,7 @@ class ViewRendererTest extends TestCase
         $response->method('hasContent')->willReturn(false);
         $request->method('handler')->willReturn('Test::action');
 
-        $event = new RequestRendering($method, $returnObject, $request, $response, '');
+        $event = new RequestRendering($this->requestHandler, $method, $returnObject, $request, $response, '');
 
         $this->eventDispatcher->method('dispatch')->willReturnArgument(0);
         $this->view->method('render')->willReturn('<html>content</html>');
@@ -147,7 +151,7 @@ class ViewRendererTest extends TestCase
         $response->method('hasContent')->willReturn(false);
         $request->method('handler')->willReturn('Test::action');
 
-        $event = new RequestRendering($method, $returnObject, $request, $response, '');
+        $event = new RequestRendering($this->requestHandler, $method, $returnObject, $request, $response, '');
 
         $this->eventDispatcher->method('dispatch')->willReturnArgument(0);
         $this->view->method('render')->willReturn('<html>content</html>');
@@ -169,7 +173,7 @@ class ViewRendererTest extends TestCase
         $response->method('hasContent')->willReturn(false);
         $request->method('handler')->willReturn('Test::action');
 
-        $event = new RequestRendering($method, null, $request, $response, '');
+        $event = new RequestRendering($this->requestHandler, $method, null, $request, $response, '');
 
         $this->eventDispatcher->method('dispatch')->willReturnArgument(0);
         $this->view->method('render')->willReturn('<html>content</html>');

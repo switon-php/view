@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Switon\Viewing\Event;
 
 use ReflectionMethod;
+use Switon\Core\SenderAwareInterface;
 use Switon\Eventing\Attribute\EventLevel;
 use Switon\Eventing\Severity;
 use Switon\Viewing\ViewInterface;
+use Switon\Viewing\ViewRenderer;
 
 /**
  * Event emitted before action output is mapped to view variables.
@@ -19,7 +21,7 @@ use Switon\Viewing\ViewInterface;
  * @see \Switon\Viewing\Event\VarsResolved
  */
 #[EventLevel(Severity::DEBUG)]
-class VarsResolving
+class VarsResolving implements SenderAwareInterface
 {
     /**
      * @param ViewInterface $view The view instance
@@ -27,10 +29,15 @@ class VarsResolving
      * @param array<string, mixed> $vars Initial template vars supplied by earlier listeners
      */
     public function __construct(
-        public ViewInterface    $view,
+        public ViewRenderer $sender,
+        public ViewInterface $view,
         public ReflectionMethod $method,
-        public array            $vars = []
+        public array $vars = [],
     ) {
+    }
 
+    public function getSender(): ViewRenderer
+    {
+        return $this->sender;
     }
 }
