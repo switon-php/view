@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Switon\Viewing\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase as BaseTestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionMethod;
 use Switon\Core\ArrayableInterface;
+use Switon\Di\Container as DiContainer;
+use Switon\Di\ServiceProvider as DiServiceProvider;
 use Switon\Http\Event\RequestRendering;
 use Switon\Http\RequestInterface;
 use Switon\Http\RequestHandlerInterface;
 use Switon\Http\ResponseInterface;
-use Switon\Testing\Container;
 use Switon\Viewing\Event\VarsResolving;
 use Switon\Viewing\ViewInterface;
 use Switon\Viewing\ViewRenderer;
@@ -22,19 +23,22 @@ use stdClass;
  * Test cases for ViewRenderer - the critical bridge between HTTP and View.
  */
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
-class ViewRendererTest extends TestCase
+class ViewRendererTest extends BaseTestCase
 {
     protected ViewRenderer $viewRenderer;
     protected ViewInterface $view;
     protected EventDispatcherInterface $eventDispatcher;
     protected RequestHandlerInterface $requestHandler;
-    protected Container $container;
+    protected DiContainer $container;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->container = new Container();
+        $this->container = new DiContainer();
+        $diProvider = new DiServiceProvider();
+        $diProvider->register($this->container);
+        $diProvider->boot();
 
         // Create mocks for dependencies
         $this->view = $this->createMock(ViewInterface::class);

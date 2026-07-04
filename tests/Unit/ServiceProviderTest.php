@@ -9,7 +9,7 @@ use Switon\Core\PathAliasInterface;
 use Switon\Eventing\ListenerProviderInterface;
 use Switon\Testing\Container;
 use Switon\Viewing\ServiceProvider;
-use Switon\Viewing\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 use Switon\Viewing\ViewRenderer;
 
 /**
@@ -28,7 +28,6 @@ class ServiceProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
 
         $this->testContainer = new Container();
 

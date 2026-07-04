@@ -8,9 +8,10 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Switon\Core\ContextAware;
 use Switon\Core\ContextManagerInterface;
+use Switon\Di\Container as DiContainer;
+use Switon\Di\ServiceProvider as DiServiceProvider;
 use Switon\Rendering\Frames;
 use Switon\Rendering\RendererInterface;
-use Switon\Testing\Container;
 use Switon\Viewing\Tests\Fixtures\TestWidget;
 use Switon\Viewing\View;
 use Switon\Viewing\ViewContext;
@@ -21,7 +22,7 @@ use stdClass;
 class InMemoryContextManager implements ContextManagerInterface
 {
     /** @var array<string, ViewContext> */
-    private array $contexts = [];
+    protected array $contexts = [];
 
     public function getContext(ContextAware $object, int $cid = 0): mixed
     {
@@ -39,7 +40,7 @@ class InMemoryContextManager implements ContextManagerInterface
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
 class ViewIntegrationTest extends TestCase
 {
-    protected Container $container;
+    protected DiContainer $container;
     protected ViewInterface $view;
     protected RendererInterface $renderer;
     protected ContainerInterface $widgetFactory;
@@ -48,8 +49,10 @@ class ViewIntegrationTest extends TestCase
     {
         parent::setUp();
 
-        // Create container with real dependencies where possible
-        $this->container = new Container();
+        $this->container = new DiContainer();
+        $diProvider = new DiServiceProvider();
+        $diProvider->register($this->container);
+        $diProvider->boot();
 
         // Keep this integration test package-local while preserving per-instance state behavior.
         $contextManager = new InMemoryContextManager();

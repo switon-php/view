@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Switon\Viewing\Tests\Unit;
 
+use PHPUnit\Framework\TestCase as BaseTestCase;
 use Psr\Container\ContainerInterface;
 use Switon\Core\ContextManagerInterface;
+use Switon\Di\Container as DiContainer;
+use Switon\Di\ServiceProvider as DiServiceProvider;
 use Switon\Rendering\RendererInterface;
-use Switon\Testing\Container;
-use Switon\Viewing\Tests\TestCase;
 use Switon\Viewing\View;
 use Switon\Viewing\ViewContext;
 use Switon\Viewing\ViewInterface;
@@ -24,9 +25,9 @@ use stdClass;
  * Purpose: Test vulnerabilities and edge cases that users might encounter.
  */
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
-class ViewUserPerspectiveTest extends TestCase
+class ViewUserPerspectiveTest extends BaseTestCase
 {
-    protected Container $container;
+    protected DiContainer $container;
     protected ViewInterface $view;
     protected ContextManagerInterface $contextManager;
     protected RendererInterface $renderer;
@@ -36,8 +37,10 @@ class ViewUserPerspectiveTest extends TestCase
     {
         parent::setUp();
 
-        // Use pre-configured test container (ContextManagerInterface is already registered but will be replaced with mock)
-        $this->container = new Container();
+        $this->container = new DiContainer();
+        $diProvider = new DiServiceProvider();
+        $diProvider->register($this->container);
+        $diProvider->boot();
 
         // Create mocks for dependencies
         // contextManager needs method configuration, so use mock
@@ -373,7 +376,10 @@ class ViewUserPerspectiveTest extends TestCase
             ->willThrowException(new RuntimeException('Template not found'));
 
         // Create a new container with the mock renderer (user would do this in real app)
-        $container = new Container();
+        $container = new DiContainer();
+        $diProvider = new DiServiceProvider();
+        $diProvider->register($container);
+        $diProvider->boot();
         $context = new ViewContext();
         $contextManager = $this->createMock(ContextManagerInterface::class);
         $contextManager->method('getContext')->willReturn($context);
