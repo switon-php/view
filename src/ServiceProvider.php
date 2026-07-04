@@ -24,7 +24,6 @@ use Switon\Eventing\ListenerProviderInterface;
 class ServiceProvider implements ServiceProviderInterface
 {
     #[Autowired] protected ListenerProviderInterface $listenerProvider;
-
     #[Autowired] protected PathAliasInterface|Lazy $pathAlias;
 
     /**

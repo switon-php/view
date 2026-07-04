@@ -16,6 +16,8 @@ use Switon\Viewing\ViewRenderer;
  *
  * Use when listeners want to seed or override template variables before the action return payload is merged.
  *
+ * Log category: `switon.viewing.vars.resolving`
+ *
  * @see \Switon\Viewing\ViewRenderer
  * @see \Switon\Viewing\ViewInterface
  * @see \Switon\Viewing\Event\VarsResolved

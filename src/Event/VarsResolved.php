@@ -17,6 +17,8 @@ use Switon\Viewing\ViewRenderer;
  *
  * Use when listeners want to inspect or mutate the final template variable map before rendering starts.
  *
+ * Log category: `switon.viewing.vars.resolved`
+ *
  * @see \Switon\Viewing\ViewRenderer
  * @see \Switon\Viewing\ViewInterface
  * @see \Switon\Viewing\Event\VarsResolving
