@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Switon\Viewing\Tests\Unit;
 
-use Switon\Core\PathAlias;
+use Switon\Core\FilesystemInterface;
+use Switon\Core\PathAliasInterface;
 use Switon\Viewing\Asset;
 use Switon\Viewing\Tests\TestCase;
 
@@ -23,7 +24,8 @@ use function unlink;
 class AssetTest extends TestCase
 {
     protected Asset $asset;
-    protected PathAlias $pathAlias;
+    protected FilesystemInterface $filesystem;
+    protected PathAliasInterface $pathAlias;
     protected string $tempDir;
     protected string $tempFile;
 
@@ -37,11 +39,11 @@ class AssetTest extends TestCase
         $this->tempFile = $this->tempDir . '/test.js';
         file_put_contents($this->tempFile, 'console.log("test");');
 
-        // Create mocks
-        $this->pathAlias = $this->createMock(PathAlias::class);
+        $this->filesystem = $this->createMock(FilesystemInterface::class);
+        $this->pathAlias = $this->createMock(PathAliasInterface::class);
 
-        // Create Asset instance using make() with dependency injection
         $this->asset = $this->make(Asset::class, [
+            'filesystem' => $this->filesystem,
             'pathAlias' => $this->pathAlias,
         ]);
     }
@@ -57,7 +59,7 @@ class AssetTest extends TestCase
         }
 
         parent::tearDown();
-        unset($this->asset, $this->pathAlias);
+        unset($this->asset, $this->filesystem);
     }
 
     /**
@@ -70,20 +72,16 @@ class AssetTest extends TestCase
         // Arrange
         $path = '/css/style.css';
         $assetBase = '/assets';
-        $publicBase = '/tmp/nonexistent';
         $expectedUrl = $assetBase . $path;
 
-        $this->pathAlias->expects($this->exactly(2))
+        $this->pathAlias->expects($this->once())
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->once())
+            ->method('isFile')
+            ->with('@public' . $path)
+            ->willReturn(false);
 
         // Act
         $result = $this->asset->get($path);
@@ -102,19 +100,15 @@ class AssetTest extends TestCase
         // Arrange
         $path = '/css/style.css';
         $assetBase = '/assets';
-        $publicBase = '/tmp/nonexistent';
 
-        $this->pathAlias->expects($this->exactly(2))
+        $this->pathAlias->expects($this->once())
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->once())
+            ->method('isFile')
+            ->with('@public' . $path)
+            ->willReturn(false);
 
         // Act
         $result1 = $this->asset->get($path);
@@ -148,17 +142,18 @@ class AssetTest extends TestCase
         $fileHash = substr(md5_file($filePath), 0, 12);
         $expectedUrl = $assetBase . $path . '?v=' . $fileHash;
 
-        $this->pathAlias->expects($this->exactly(2))
+        $this->pathAlias->expects($this->once())
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->once())
+            ->method('isFile')
+            ->with('@public' . $path)
+            ->willReturn(true);
+        $this->filesystem->expects($this->once())
+            ->method('read')
+            ->with('@public' . $path)
+            ->willReturn((string) file_get_contents($filePath));
 
         // Act
         $result = $this->asset->get($path);
@@ -190,17 +185,18 @@ class AssetTest extends TestCase
         $fileHash = substr(md5_file($filePath), 0, 12);
         $expectedUrl = $assetBase . $path . '?v=' . $fileHash;
 
-        $this->pathAlias->expects($this->exactly(2))
+        $this->pathAlias->expects($this->once())
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->once())
+            ->method('isFile')
+            ->with('@public' . $path)
+            ->willReturn(true);
+        $this->filesystem->expects($this->once())
+            ->method('read')
+            ->with('@public' . $path)
+            ->willReturn((string) file_get_contents($filePath));
 
         $result = $this->asset->get($path);
 
@@ -268,20 +264,16 @@ class AssetTest extends TestCase
         // Arrange
         $path = '/js/nonexistent.js';
         $assetBase = '/assets';
-        $publicBase = $this->tempDir;
         $expectedUrl = $assetBase . $path;
 
-        $this->pathAlias->expects($this->exactly(2))
+        $this->pathAlias->expects($this->once())
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->once())
+            ->method('isFile')
+            ->with('@public' . $path)
+            ->willReturn(false);
 
         // Act
         $result = $this->asset->get($path);
@@ -299,24 +291,19 @@ class AssetTest extends TestCase
     {
         // Arrange
         $assetBase = '/assets';
-        $publicBase = '/tmp/nonexistent';
         $paths = [
             '/css/style.css',
             '/js/app.js',
             '/images/logo.png',
         ];
 
-        $this->pathAlias->expects($this->exactly(6))
+        $this->pathAlias->expects($this->exactly(3))
             ->method('resolve')
-            ->willReturnCallback(function ($alias) use ($assetBase, $publicBase) {
-                if ($alias === '@asset') {
-                    return $assetBase;
-                }
-                if ($alias === '@public') {
-                    return $publicBase;
-                }
-                return '';
-            });
+            ->with('@asset')
+            ->willReturn($assetBase);
+        $this->filesystem->expects($this->exactly(3))
+            ->method('isFile')
+            ->willReturn(false);
 
         // Act
         $results = [];

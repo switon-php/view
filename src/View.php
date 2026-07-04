@@ -9,6 +9,7 @@ use ReflectionClass;
 use Switon\Core\Attribute\Autowired;
 use Switon\Core\ContextAware;
 use Switon\Core\ContextManagerInterface;
+use Switon\Core\FilesystemInterface;
 use Switon\Core\Exception\InvalidValueException;
 use Switon\Rendering\RendererInterface;
 
@@ -47,6 +48,7 @@ class View implements ViewInterface, ContextAware
     #[Autowired] protected ContextManagerInterface $contextManager;
     #[Autowired] protected ContainerInterface $widgetFactory;
     #[Autowired] protected RendererInterface $renderer;
+    #[Autowired] protected FilesystemInterface $filesystem;
 
     #[Autowired] protected bool $rewrite = true;
     #[Autowired] protected ?string $layout = '@view/Layouts/Default';
@@ -174,7 +176,7 @@ class View implements ViewInterface, ContextAware
 
         // Cache only positive hit; a missing directory may appear later in the same process.
         if (($this->dirs[$dir] ?? false) !== true) {
-            $this->dirs[$dir] = is_dir($dir);
+            $this->dirs[$dir] = $this->filesystem->isDir($dir);
         }
 
         $action = basename($action, 'Action');

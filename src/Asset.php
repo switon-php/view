@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Switon\Viewing;
 
 use Switon\Core\Attribute\Autowired;
+use Switon\Core\Exception\FileNotFoundException;
+use Switon\Core\FilesystemInterface;
 use Switon\Core\PathAliasInterface;
 
-use function is_file;
-use function md5_file;
+use function md5;
 use function rtrim;
 use function str_contains;
 use function substr;
@@ -23,11 +24,11 @@ use function substr;
  *
  * @see \Switon\Viewing\AssetInterface
  * @see \Switon\Viewing\ViewInterface
- * @see \Switon\Core\PathAliasInterface
  */
 class Asset implements AssetInterface
 {
     #[Autowired] protected PathAliasInterface $pathAlias;
+    #[Autowired] protected FilesystemInterface $filesystem;
 
     /** @var array<string, string> Cached asset URLs keyed by path */
     protected array $urls = [];
@@ -41,8 +42,12 @@ class Asset implements AssetInterface
             $assetBase = $this->pathAlias->resolve('@asset');
             if (str_contains($path, '?')) {
                 $url = $assetBase . rtrim($path, '?');
-            } elseif (is_file($file = $this->pathAlias->resolve('@public') . $path)) {
-                $url = $assetBase . $path . '?v=' . substr(md5_file($file), 0, 12);
+            } elseif ($this->filesystem->isFile('@public' . $path)) {
+                try {
+                    $url = $assetBase . $path . '?v=' . substr(md5($this->filesystem->read('@public' . $path)), 0, 12);
+                } catch (FileNotFoundException) {
+                    $url = $assetBase . $path;
+                }
             } else {
                 $url = $assetBase . $path;
             }
