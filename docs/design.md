@@ -7,7 +7,7 @@
 
 - [View Package](README.md) — usage, layout control, and HTTP bridge
 - [FAQ](faq.md#view-faq) — short answers for templates and fragments
-- [Renderer Package](../../renderer/docs/README.md) — template engine and rendering pipeline
+- [Renderer Package](https://github.com/switon-php/renderer/blob/main/docs/README.md) — template engine and rendering pipeline
 
 ---
 

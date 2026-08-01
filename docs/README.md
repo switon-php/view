@@ -128,4 +128,4 @@ helpers.
 
 - **Need setup questions answered quickly:** [FAQ](faq.md#view-faq)
 - **Need design trade-offs:** [Design Rationale](design.md#design-rationale)
-- **Need template engine details:** [Renderer Package](../../renderer/docs/README.md)
+- **Need template engine details:** [Renderer Package](https://github.com/switon-php/renderer/blob/main/docs/README.md)
